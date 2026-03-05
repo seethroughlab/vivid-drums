@@ -1,5 +1,18 @@
 # vivid-drums
 
-Vivid external package repository.
+Extracted package containing drum synthesis operators for Vivid.
 
-This repo has been initialized and will be populated during Milestone 2 extraction.
+## Operators
+
+- DrumKick
+- DrumSnare
+- DrumHiHat
+- DrumClap
+- DrumCymbal
+
+## Local install
+
+```bash
+./build/vivid link ../vivid-drums
+./build/vivid rebuild vivid-drums
+```
