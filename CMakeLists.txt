@@ -7,6 +7,7 @@ set(VIVID_DRUM_OPS
   drum_hihat
   drum_clap
   drum_cymbal
+  drum_tom
 )
 
 foreach(name IN LISTS VIVID_DRUM_OPS)

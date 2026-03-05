@@ -21,7 +21,8 @@ int main() {
         "\"drum_snare\"",
         "\"drum_hihat\"",
         "\"drum_clap\"",
-        "\"drum_cymbal\""
+        "\"drum_cymbal\"",
+        "\"drum_tom\""
     };
 
     for (const auto& needle : required) {

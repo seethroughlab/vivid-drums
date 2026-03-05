@@ -3,5 +3,5 @@
   "version": "0.1.0",
   "description": "Drum synthesis package library for Vivid",
   "build": "cmake",
-  "operators": ["drum_kick", "drum_snare", "drum_hihat", "drum_clap", "drum_cymbal"]
+  "operators": ["drum_kick", "drum_snare", "drum_hihat", "drum_clap", "drum_cymbal", "drum_tom"]
 }
