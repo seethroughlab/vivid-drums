@@ -2,6 +2,10 @@
 
 `vivid-drums` is a Vivid package library that provides drum synthesis operators.
 
+## Preview
+
+![vivid-drums preview](docs/images/preview.png)
+
 ## Local install
 
 ```bash
