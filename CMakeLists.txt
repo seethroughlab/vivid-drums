@@ -19,3 +19,8 @@ foreach(name IN LISTS VIVID_DRUM_OPS)
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 endforeach()
+
+add_custom_target(operators DEPENDS ${VIVID_DRUM_OPS})
+
+add_executable(test_package_manifest tests/test_package_manifest.cpp)
+target_compile_features(test_package_manifest PRIVATE cxx_std_17)
