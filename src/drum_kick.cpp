@@ -32,6 +32,30 @@ struct DrumKick : vivid::OperatorBase {
     double              osc_phase_ = 0.0;
     float               prev_phase_ = 0.0f;
 
+    DrumKick() {
+        vivid::semantic_tag(phase, "phase_01");
+        vivid::semantic_shape(phase, "scalar");
+
+        vivid::semantic_tag(pitch, "frequency_hz");
+        vivid::semantic_shape(pitch, "scalar");
+        vivid::semantic_unit(pitch, "Hz");
+
+        vivid::semantic_tag(pitch_decay, "time_seconds");
+        vivid::semantic_shape(pitch_decay, "scalar");
+        vivid::semantic_unit(pitch_decay, "s");
+
+        vivid::semantic_tag(decay, "time_seconds");
+        vivid::semantic_shape(decay, "scalar");
+        vivid::semantic_unit(decay, "s");
+
+        vivid::semantic_tag(attack, "time_seconds");
+        vivid::semantic_shape(attack, "scalar");
+        vivid::semantic_unit(attack, "s");
+
+        vivid::semantic_tag(volume, "amplitude_linear");
+        vivid::semantic_shape(volume, "scalar");
+    }
+
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
         out.push_back(&phase);
         out.push_back(&pitch);

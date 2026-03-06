@@ -37,6 +37,22 @@ struct DrumClap : vivid::OperatorBase {
     double burst_offsets_[kNumBursts] = {};
     float  burst_pan_[kNumBursts]     = {};  // -1 to 1
 
+    DrumClap() {
+        vivid::semantic_tag(phase, "phase_01");
+        vivid::semantic_shape(phase, "scalar");
+
+        vivid::semantic_tag(decay, "time_seconds");
+        vivid::semantic_shape(decay, "scalar");
+        vivid::semantic_unit(decay, "s");
+
+        vivid::semantic_tag(tune, "frequency_hz");
+        vivid::semantic_shape(tune, "scalar");
+        vivid::semantic_unit(tune, "Hz");
+
+        vivid::semantic_tag(volume, "amplitude_linear");
+        vivid::semantic_shape(volume, "scalar");
+    }
+
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
         out.push_back(&phase);
         out.push_back(&decay);

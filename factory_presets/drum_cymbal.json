@@ -19,6 +19,10 @@
     {
       "name": "Gong",
       "params": { "decay": 8.0, "tone": 0.15, "pitch": 0.5, "shimmer": 0.7, "sizzle": 0.1, "volume": 0.65 }
+    },
+    {
+      "name": "Stack Foundation Cymbal",
+      "params": { "decay": 1.4, "tone": 0.52, "pitch": 1.0, "shimmer": 0.28, "sizzle": 0.22, "volume": 0.09 }
     }
   ]
 }

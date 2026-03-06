@@ -31,6 +31,26 @@ struct DrumSnare : vivid::OperatorBase {
     double              osc_phase_ = 0.0;
     float               prev_phase_ = 0.0f;
 
+    DrumSnare() {
+        vivid::semantic_tag(phase, "phase_01");
+        vivid::semantic_shape(phase, "scalar");
+
+        vivid::semantic_tag(pitch, "frequency_hz");
+        vivid::semantic_shape(pitch, "scalar");
+        vivid::semantic_unit(pitch, "Hz");
+
+        vivid::semantic_tag(tone_decay, "time_seconds");
+        vivid::semantic_shape(tone_decay, "scalar");
+        vivid::semantic_unit(tone_decay, "s");
+
+        vivid::semantic_tag(noise_decay, "time_seconds");
+        vivid::semantic_shape(noise_decay, "scalar");
+        vivid::semantic_unit(noise_decay, "s");
+
+        vivid::semantic_tag(volume, "amplitude_linear");
+        vivid::semantic_shape(volume, "scalar");
+    }
+
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
         out.push_back(&phase);
         out.push_back(&tone_level);

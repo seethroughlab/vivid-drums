@@ -19,6 +19,10 @@
     {
       "name": "Tribal Slap",
       "params": { "decay": 0.25, "tone": 0.6, "sloppy": 0.5, "tail": 0.4, "tune": 800, "volume": 0.8 }
+    },
+    {
+      "name": "Stack Foundation Clap",
+      "params": { "decay": 0.17, "tone": 0.66, "sloppy": 0.22, "tail": 0.16, "stereo_width": 0.3, "tune": 1800, "volume": 0.14 }
     }
   ]
 }

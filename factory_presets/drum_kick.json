@@ -19,6 +19,10 @@
     {
       "name": "Acoustic Thud",
       "params": { "pitch": 90, "pitch_env": 80, "pitch_decay": 0.04, "decay": 0.25, "click": 0.4, "drive": 0.15, "overtones": 0.4, "attack": 0.01 }
+    },
+    {
+      "name": "Stack Foundation Kick",
+      "params": { "pitch": 58, "pitch_env": 230, "pitch_decay": 0.045, "decay": 0.38, "click": 0.24, "drive": 0.22, "overtones": 0.12, "attack": 0.004, "volume": 0.45 }
     }
   ]
 }

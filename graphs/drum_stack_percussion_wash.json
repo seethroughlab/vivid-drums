@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "title": "Drum Stack Percussion Wash",
+    "description": "Brighter layered percussion stack with longer cymbal/hat tails.",
+    "tags": ["drums", "stack", "percussion", "core-only"],
+    "difficulty": "beginner",
+    "domains": ["audio", "gpu"]
+  },
+  "nodes": {
+    "clock1": { "type": "Clock", "params": { "bpm": 132.0 } },
+    "kick1":  { "type": "DrumKick", "params": { "pitch": 72.0, "pitch_env": 180.0, "decay": 0.24, "click": 0.36, "volume": 0.28 } },
+    "snare1": { "type": "DrumSnare", "params": { "pitch": 245.0, "tone": 0.36, "noise": 0.72, "tone_decay": 0.07, "noise_decay": 0.18, "snappy": 0.78, "volume": 0.21 } },
+    "hat1":   { "type": "DrumHiHat", "params": { "decay": 0.24, "tone": 0.82, "ring": 0.52, "pitch": 1.12, "volume": 0.16 } },
+    "clap1":  { "type": "DrumClap", "params": { "decay": 0.12, "tone": 0.74, "sloppy": 0.16, "tail": 0.08, "volume": 0.10 } },
+    "tom1":   { "type": "DrumTom", "params": { "pitch": 142.0, "bend": 0.25, "decay": 0.2, "volume": 0.09 } },
+    "cym1":   { "type": "DrumCymbal", "params": { "decay": 3.8, "tone": 0.64, "shimmer": 0.47, "sizzle": 0.54, "volume": 0.12 } },
+    "noise1": { "type": "Noise", "params": { "r": 0.08, "g": 0.25, "b": 0.45 } },
+    "vout":   { "type": "video_out", "params": {} },
+    "aout":   { "type": "audio_out", "params": {} }
+  },
+  "connections": [
+    { "from": "clock1/beat_phase", "to": "kick1/phase" },
+    { "from": "clock1/beat_phase", "to": "snare1/phase" },
+    { "from": "clock1/beat_phase", "to": "hat1/phase" },
+    { "from": "clock1/beat_phase", "to": "clap1/phase" },
+    { "from": "clock1/beat_phase", "to": "tom1/phase" },
+    { "from": "clock1/beat_phase", "to": "cym1/phase" },
+    { "from": "kick1/output", "to": "aout/input" },
+    { "from": "snare1/output", "to": "aout/input" },
+    { "from": "hat1/output", "to": "aout/input" },
+    { "from": "clap1/output", "to": "aout/input" },
+    { "from": "tom1/output", "to": "aout/input" },
+    { "from": "cym1/output", "to": "aout/input" },
+    { "from": "noise1/texture", "to": "vout/input" }
+  ]
+}

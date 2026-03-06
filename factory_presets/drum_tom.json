@@ -19,6 +19,10 @@
     {
       "name": "Timpani Roll",
       "params": { "pitch": 65, "bend": 0.5, "bend_time": 0.2, "color": 0.15, "tone": 0.35, "decay": 1.5 }
+    },
+    {
+      "name": "Stack Foundation Tom",
+      "params": { "pitch": 95, "bend": 0.35, "bend_time": 0.09, "color": 0.25, "tone": 0.48, "decay": 0.28, "volume": 0.13 }
     }
   ]
 }

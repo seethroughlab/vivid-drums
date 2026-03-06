@@ -19,6 +19,10 @@
     {
       "name": "Brush Swipe",
       "params": { "tone": 0.2, "noise": 0.8, "pitch": 150, "tone_decay": 0.05, "noise_decay": 0.4, "snappy": 0.2, "color": 0.2, "volume": 0.6 }
+    },
+    {
+      "name": "Stack Foundation Snare",
+      "params": { "tone": 0.45, "noise": 0.66, "pitch": 210, "tone_decay": 0.11, "noise_decay": 0.22, "snappy": 0.65, "color": 0.55, "volume": 0.26 }
     }
   ]
 }
