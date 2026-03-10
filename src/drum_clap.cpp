@@ -64,8 +64,8 @@ struct DrumClap : vivid::AudioOperatorBase {
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
-        out.push_back({"output_left",  VIVID_PORT_AUDIO_FLOAT, VIVID_PORT_OUTPUT});
-        out.push_back({"output_right", VIVID_PORT_AUDIO_FLOAT, VIVID_PORT_OUTPUT});
+        out.push_back({"output_left",  VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
+        out.push_back({"output_right", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
     }
 
     void randomize_bursts(float slop, float width) {
