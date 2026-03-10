@@ -9,9 +9,8 @@
 // Short decay = closed hat, long decay = open hat.
 // ---------------------------------------------------------------------------
 
-struct DrumHiHat : vivid::OperatorBase {
+struct DrumHiHat : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumHiHat";
-    static constexpr VividDomain kDomain = VIVID_DOMAIN_AUDIO;
     static constexpr bool kTimeDependent = true;
 
     vivid::Param<float> phase  {"phase",   0.0f,  0.0f, 1.0f};
@@ -61,12 +60,9 @@ struct DrumHiHat : vivid::OperatorBase {
         out.push_back({"output", VIVID_PORT_AUDIO_FLOAT, VIVID_PORT_OUTPUT});
     }
 
-    void process(const VividProcessContext* ctx) override {
-        auto* audio = vivid_audio(ctx);
-        if (!audio) return;
-
-        float* out = audio->output_buffers[0];
-        double sr  = audio->sample_rate;
+    void process_audio(const VividAudioContext* ctx) override {
+        float* out = ctx->output_buffers[0];
+        double sr  = ctx->sample_rate;
         double inv_sr = 1.0 / sr;
 
         float dec      = decay.value;
@@ -79,7 +75,7 @@ struct DrumHiHat : vivid::OperatorBase {
 
         float cutoff = 4000.0f + tn * 8000.0f;
 
-        for (uint32_t i = 0; i < audio->buffer_size; i++) {
+        for (uint32_t i = 0; i < ctx->buffer_size; i++) {
             if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
                 env_.trigger();
                 for (int r = 0; r < 6; r++) ring_phases_[r] = 0.0;

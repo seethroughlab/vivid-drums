@@ -9,9 +9,8 @@
 // Filtered tail provides the reverberant decay.
 // ---------------------------------------------------------------------------
 
-struct DrumClap : vivid::OperatorBase {
+struct DrumClap : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumClap";
-    static constexpr VividDomain kDomain = VIVID_DOMAIN_AUDIO;
     static constexpr bool kTimeDependent = true;
 
     vivid::Param<float> phase        {"phase",        0.0f,    0.0f,    1.0f};
@@ -81,13 +80,10 @@ struct DrumClap : vivid::OperatorBase {
         }
     }
 
-    void process(const VividProcessContext* ctx) override {
-        auto* audio = vivid_audio(ctx);
-        if (!audio) return;
-
-        float* out_l = audio->output_buffers[0];
-        float* out_r = audio->output_buffers[1];
-        double sr    = audio->sample_rate;
+    void process_audio(const VividAudioContext* ctx) override {
+        float* out_l = ctx->output_buffers[0];
+        float* out_r = ctx->output_buffers[1];
+        double sr    = ctx->sample_rate;
         double inv_sr = 1.0 / sr;
 
         float dec       = decay.value;
@@ -101,7 +97,7 @@ struct DrumClap : vivid::OperatorBase {
 
         float cutoff = center + tn * 2000.0f;
 
-        for (uint32_t i = 0; i < audio->buffer_size; i++) {
+        for (uint32_t i = 0; i < ctx->buffer_size; i++) {
             if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
                 env_.trigger();
                 randomize_bursts(slop, width);

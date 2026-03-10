@@ -9,9 +9,8 @@
 // down to base pitch over bend_time.
 // ---------------------------------------------------------------------------
 
-struct DrumTom : vivid::OperatorBase {
+struct DrumTom : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumTom";
-    static constexpr VividDomain kDomain = VIVID_DOMAIN_AUDIO;
     static constexpr bool kTimeDependent = true;
 
     vivid::Param<float> phase     {"phase",     0.0f,   0.0f,   1.0f};
@@ -64,12 +63,9 @@ struct DrumTom : vivid::OperatorBase {
         out.push_back({"output", VIVID_PORT_AUDIO_FLOAT, VIVID_PORT_OUTPUT});
     }
 
-    void process(const VividProcessContext* ctx) override {
-        auto* audio = vivid_audio(ctx);
-        if (!audio) return;
-
-        float* out = audio->output_buffers[0];
-        double sr  = audio->sample_rate;
+    void process_audio(const VividAudioContext* ctx) override {
+        float* out = ctx->output_buffers[0];
+        double sr  = ctx->sample_rate;
         double inv_sr = 1.0 / sr;
 
         float p_base   = pitch.value;
@@ -85,7 +81,7 @@ struct DrumTom : vivid::OperatorBase {
         float filter_cutoff = p_base * (1.0f + tn * 2.0f);
         float filter_reso   = 0.2f + tn * 0.4f;
 
-        for (uint32_t i = 0; i < audio->buffer_size; i++) {
+        for (uint32_t i = 0; i < ctx->buffer_size; i++) {
             if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
                 amp_env_.trigger();
                 bend_env_.trigger();

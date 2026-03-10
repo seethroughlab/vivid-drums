@@ -10,9 +10,8 @@
 // Long decay times: 1-2s = ride, 3+ = crash.
 // ---------------------------------------------------------------------------
 
-struct DrumCymbal : vivid::OperatorBase {
+struct DrumCymbal : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumCymbal";
-    static constexpr VividDomain kDomain = VIVID_DOMAIN_AUDIO;
     static constexpr bool kTimeDependent = true;
 
     vivid::Param<float> phase   {"phase",   0.0f,  0.0f,  1.0f};
@@ -63,12 +62,9 @@ struct DrumCymbal : vivid::OperatorBase {
         out.push_back({"output", VIVID_PORT_AUDIO_FLOAT, VIVID_PORT_OUTPUT});
     }
 
-    void process(const VividProcessContext* ctx) override {
-        auto* audio = vivid_audio(ctx);
-        if (!audio) return;
-
-        float* out = audio->output_buffers[0];
-        double sr  = audio->sample_rate;
+    void process_audio(const VividAudioContext* ctx) override {
+        float* out = ctx->output_buffers[0];
+        double sr  = ctx->sample_rate;
         double inv_sr = 1.0 / sr;
 
         float dec      = decay.value;
@@ -81,7 +77,7 @@ struct DrumCymbal : vivid::OperatorBase {
 
         float cutoff = 3000.0f + tn * 9000.0f;
 
-        for (uint32_t i = 0; i < audio->buffer_size; i++) {
+        for (uint32_t i = 0; i < ctx->buffer_size; i++) {
             if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
                 env_.trigger();
                 for (int r = 0; r < kNumOsc; r++) ring_phases_[r] = 0.0;

@@ -10,9 +10,8 @@
 // Soft clipping via tanh for warmth/drive.
 // ---------------------------------------------------------------------------
 
-struct DrumKick : vivid::OperatorBase {
+struct DrumKick : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumKick";
-    static constexpr VividDomain kDomain = VIVID_DOMAIN_AUDIO;
     static constexpr bool kTimeDependent = true;
 
     vivid::Param<float> phase     {"phase",      0.0f,   0.0f,   1.0f};
@@ -73,12 +72,9 @@ struct DrumKick : vivid::OperatorBase {
         out.push_back({"output", VIVID_PORT_AUDIO_FLOAT, VIVID_PORT_OUTPUT});
     }
 
-    void process(const VividProcessContext* ctx) override {
-        auto* audio = vivid_audio(ctx);
-        if (!audio) return;
-
-        float* out = audio->output_buffers[0];
-        double sr  = audio->sample_rate;
+    void process_audio(const VividAudioContext* ctx) override {
+        float* out = ctx->output_buffers[0];
+        double sr  = ctx->sample_rate;
         double inv_sr = 1.0 / sr;
 
         float p_base   = pitch.value;
@@ -95,7 +91,7 @@ struct DrumKick : vivid::OperatorBase {
         // Click burst duration: 2ms in samples
         double click_dur = 0.002;
 
-        for (uint32_t i = 0; i < audio->buffer_size; i++) {
+        for (uint32_t i = 0; i < ctx->buffer_size; i++) {
             // Trigger detection
             if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
                 amp_env_.trigger();
