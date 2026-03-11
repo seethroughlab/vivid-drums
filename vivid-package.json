@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "vivid_core": ">=0.1.0 <2.0.0",
   "description": "Drum synthesis package library for Vivid",
+  "author": "seethroughlab",
+  "category": "audio",
+  "tags": ["audio", "drums", "synthesis"],
   "build": "cmake",
   "operators": ["drum_kick", "drum_snare", "drum_hihat", "drum_clap", "drum_cymbal", "drum_tom"]
 }

@@ -64,8 +64,7 @@ struct DrumClap : vivid::AudioOperatorBase {
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
-        out.push_back({"output_left",  VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
-        out.push_back({"output_right", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
+        out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT, 0, 2});
     }
 
     void randomize_bursts(float slop, float width) {
@@ -82,7 +81,7 @@ struct DrumClap : vivid::AudioOperatorBase {
 
     void process_audio(const VividAudioContext* ctx) override {
         float* out_l = ctx->output_buffers[0];
-        float* out_r = ctx->output_buffers[1];
+        float* out_r = ctx->output_buffers[0] + ctx->buffer_size;
         double sr    = ctx->sample_rate;
         double inv_sr = 1.0 / sr;
 

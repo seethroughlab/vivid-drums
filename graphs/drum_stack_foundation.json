@@ -4,7 +4,7 @@
     "description": "Layered kick/snare/hat/clap/tom/cymbal stack driven by one clock phase.",
     "tags": ["drums", "stack", "layering", "core-only"],
     "difficulty": "beginner",
-    "domains": ["audio", "gpu"]
+    "domains": ["audio"]
   },
   "nodes": {
     "clock1": { "type": "Clock", "params": { "bpm": 122.0 } },
@@ -14,8 +14,6 @@
     "clap1":  { "type": "DrumClap", "params": { "decay": 0.17, "tone": 0.66, "sloppy": 0.22, "tail": 0.16, "volume": 0.14 } },
     "tom1":   { "type": "DrumTom", "params": { "pitch": 95.0, "bend": 0.35, "decay": 0.28, "volume": 0.13 } },
     "cym1":   { "type": "DrumCymbal", "params": { "decay": 1.4, "tone": 0.52, "shimmer": 0.28, "sizzle": 0.22, "volume": 0.09 } },
-    "bars1":  { "type": "Bars", "params": { "r": 0.23, "g": 0.66, "b": 0.95 } },
-    "vout":   { "type": "video_out", "params": {} },
     "aout":   { "type": "audio_out", "params": {} }
   },
   "connections": [
@@ -30,7 +28,6 @@
     { "from": "hat1/output", "to": "aout/input" },
     { "from": "clap1/output", "to": "aout/input" },
     { "from": "tom1/output", "to": "aout/input" },
-    { "from": "cym1/output", "to": "aout/input" },
-    { "from": "bars1/texture", "to": "vout/input" }
+    { "from": "cym1/output", "to": "aout/input" }
   ]
 }
