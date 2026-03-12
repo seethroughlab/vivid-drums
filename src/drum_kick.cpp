@@ -1,6 +1,8 @@
 #include "operator_api/operator.h"
 #include "operator_api/audio_operator.h"
 #include "operator_api/drum_dsp.h"
+#include "operator_api/midi_types.h"
+#include "operator_api/type_id.h"
 
 // ---------------------------------------------------------------------------
 // DrumKick: 808-style kick drum
@@ -24,6 +26,7 @@ struct DrumKick : vivid::AudioOperatorBase {
     vivid::Param<float> overtones {"overtones",  0.1f,   0.0f,   1.0f};
     vivid::Param<float> attack    {"attack",     0.005f, 0.0f,   0.1f};
     vivid::Param<float> volume    {"volume",     0.8f,   0.0f,   1.0f};
+    vivid::Param<int>   note      {"note",       36,     0,     127};
 
     drum::DecayEnvelope amp_env_;
     drum::DecayEnvelope pitch_env_;
@@ -66,10 +69,12 @@ struct DrumKick : vivid::AudioOperatorBase {
         out.push_back(&overtones);
         out.push_back(&attack);
         out.push_back(&volume);
+        out.push_back(&note);
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
         out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
+        out.push_back(VIVID_HANDLE_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
     }
 
     void process_audio(const VividAudioContext* ctx) override {
@@ -91,9 +96,26 @@ struct DrumKick : vivid::AudioOperatorBase {
         // Click burst duration: 2ms in samples
         double click_dur = 0.002;
 
+        // Check for MIDI trigger
+        bool midi_triggered = false;
+        float midi_vel_scale = 1.0f;
+        if (ctx->input_handles && ctx->input_handle_count > 0 && ctx->input_handles[0]) {
+            auto* midi = static_cast<const VividMidiBuffer*>(ctx->input_handles[0]);
+            uint8_t target_note = static_cast<uint8_t>(note.int_value());
+            for (uint32_t m = 0; m < midi->count; ++m) {
+                const auto& msg = midi->messages[m];
+                if ((msg.status & 0xF0) == 0x90 && msg.data2 > 0 && msg.data1 == target_note) {
+                    midi_triggered = true;
+                    midi_vel_scale = msg.data2 / 127.0f;
+                    break;
+                }
+            }
+        }
+
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            // Trigger detection
-            if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
+            // Trigger detection: MIDI or phase-wrap fallback
+            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            if (trig) {
                 amp_env_.trigger();
                 pitch_env_.trigger();
                 osc_phase_ = 0.0;
@@ -127,7 +149,7 @@ struct DrumKick : vivid::AudioOperatorBase {
             if (drv > 0.0f)
                 sample = drum::soft_clip(sample, drv);
 
-            out[i] = sample * vol;
+            out[i] = sample * vol * (midi_triggered ? midi_vel_scale : 1.0f);
 
             // Advance
             osc_phase_ += freq * inv_sr;

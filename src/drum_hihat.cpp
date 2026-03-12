@@ -1,6 +1,8 @@
 #include "operator_api/operator.h"
 #include "operator_api/audio_operator.h"
 #include "operator_api/drum_dsp.h"
+#include "operator_api/midi_types.h"
+#include "operator_api/type_id.h"
 
 // ---------------------------------------------------------------------------
 // DrumHiHat: Filtered noise + 6 metallic ring oscillators
@@ -20,6 +22,7 @@ struct DrumHiHat : vivid::AudioOperatorBase {
     vivid::Param<float> pitch  {"pitch",   1.0f,  0.5f, 2.0f};
     vivid::Param<float> attack {"attack",  0.002f, 0.0f, 0.05f};
     vivid::Param<float> volume {"volume",  0.7f,  0.0f, 1.0f};
+    vivid::Param<int>   note   {"note",    42,    0,   127};
 
     // 808-style metallic ring frequencies
     static constexpr float kRingFreqs[6] = {205.3f, 304.4f, 369.6f, 522.7f, 540.0f, 800.0f};
@@ -54,10 +57,12 @@ struct DrumHiHat : vivid::AudioOperatorBase {
         out.push_back(&pitch);
         out.push_back(&attack);
         out.push_back(&volume);
+        out.push_back(&note);
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
         out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
+        out.push_back(VIVID_HANDLE_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
     }
 
     void process_audio(const VividAudioContext* ctx) override {
@@ -75,8 +80,25 @@ struct DrumHiHat : vivid::AudioOperatorBase {
 
         float cutoff = 4000.0f + tn * 8000.0f;
 
+        // Check for MIDI trigger
+        bool midi_triggered = false;
+        float midi_vel_scale = 1.0f;
+        if (ctx->input_handles && ctx->input_handle_count > 0 && ctx->input_handles[0]) {
+            auto* midi = static_cast<const VividMidiBuffer*>(ctx->input_handles[0]);
+            uint8_t target_note = static_cast<uint8_t>(note.int_value());
+            for (uint32_t m = 0; m < midi->count; ++m) {
+                const auto& msg = midi->messages[m];
+                if ((msg.status & 0xF0) == 0x90 && msg.data2 > 0 && msg.data1 == target_note) {
+                    midi_triggered = true;
+                    midi_vel_scale = msg.data2 / 127.0f;
+                    break;
+                }
+            }
+        }
+
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
+            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            if (trig) {
                 env_.trigger();
                 for (int r = 0; r < 6; r++) ring_phases_[r] = 0.0;
             }
@@ -101,7 +123,7 @@ struct DrumHiHat : vivid::AudioOperatorBase {
             float filtered = hp_filter_.process(raw, cutoff, 0.3f,
                                                  static_cast<float>(sr), drum::SVF::HP);
 
-            out[i] = filtered * env * vol;
+            out[i] = filtered * env * vol * (midi_triggered ? midi_vel_scale : 1.0f);
 
             env_.advance(inv_sr);
         }

@@ -1,6 +1,8 @@
 #include "operator_api/operator.h"
 #include "operator_api/audio_operator.h"
 #include "operator_api/drum_dsp.h"
+#include "operator_api/midi_types.h"
+#include "operator_api/type_id.h"
 
 // ---------------------------------------------------------------------------
 // DrumClap: 4 staggered noise bursts through SVF bandpass (stereo)
@@ -21,6 +23,7 @@ struct DrumClap : vivid::AudioOperatorBase {
     vivid::Param<float> stereo_width {"stereo_width", 0.5f,    0.0f,    1.0f};
     vivid::Param<float> tune         {"tune",      1500.0f,  500.0f, 5000.0f};
     vivid::Param<float> volume       {"volume",       0.7f,    0.0f,    1.0f};
+    vivid::Param<int>   note         {"note",         39,      0,      127};
 
     static constexpr int kNumBursts = 4;
     // Base burst offsets in seconds (~15ms apart)
@@ -61,10 +64,12 @@ struct DrumClap : vivid::AudioOperatorBase {
         out.push_back(&stereo_width);
         out.push_back(&tune);
         out.push_back(&volume);
+        out.push_back(&note);
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
         out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT, 0, 2});
+        out.push_back(VIVID_HANDLE_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
     }
 
     void randomize_bursts(float slop, float width) {
@@ -96,8 +101,25 @@ struct DrumClap : vivid::AudioOperatorBase {
 
         float cutoff = center + tn * 2000.0f;
 
+        // Check for MIDI trigger
+        bool midi_triggered = false;
+        float midi_vel_scale = 1.0f;
+        if (ctx->input_handles && ctx->input_handle_count > 0 && ctx->input_handles[0]) {
+            auto* midi = static_cast<const VividMidiBuffer*>(ctx->input_handles[0]);
+            uint8_t target_note = static_cast<uint8_t>(note.int_value());
+            for (uint32_t m = 0; m < midi->count; ++m) {
+                const auto& msg = midi->messages[m];
+                if ((msg.status & 0xF0) == 0x90 && msg.data2 > 0 && msg.data1 == target_note) {
+                    midi_triggered = true;
+                    midi_vel_scale = msg.data2 / 127.0f;
+                    break;
+                }
+            }
+        }
+
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            if (i == 0 && drum::detect_trigger(cur_phase, prev_phase_)) {
+            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            if (trig) {
                 env_.trigger();
                 randomize_bursts(slop, width);
             }
@@ -139,8 +161,9 @@ struct DrumClap : vivid::AudioOperatorBase {
             float filt_r = filter_r_.process(burst_r + tail_sample * 0.5f, cutoff, 0.4f,
                                               static_cast<float>(sr), drum::SVF::BP);
 
-            out_l[i] = filt_l * env * vol;
-            out_r[i] = filt_r * env * vol;
+            float vel = midi_triggered ? midi_vel_scale : 1.0f;
+            out_l[i] = filt_l * env * vol * vel;
+            out_r[i] = filt_r * env * vol * vel;
 
             env_.advance(inv_sr);
         }
