@@ -24,11 +24,11 @@
     "aout":   { "type": "audio_out", "params": {} }
   },
   "connections": [
-    { "from": "clock1/bar_phase", "to": "seq1/phase" },
-    { "from": "seq1/kick",  "to": "kick1/phase" },
-    { "from": "seq1/snare", "to": "snare1/phase" },
-    { "from": "seq1/hat",   "to": "hat1/phase" },
-    { "from": "seq1/clap",  "to": "clap1/phase" },
+    { "from": "clock1/bar_phase", "to": "seq1/beat_phase" },
+    { "from": "seq1/kick",  "to": "kick1/trigger" },
+    { "from": "seq1/snare", "to": "snare1/trigger" },
+    { "from": "seq1/hat",   "to": "hat1/trigger" },
+    { "from": "seq1/clap",  "to": "clap1/trigger" },
     { "from": "kick1/output",       "to": "aout/input" },
     { "from": "snare1/output",      "to": "aout/input" },
     { "from": "hat1/output",        "to": "aout/input" },

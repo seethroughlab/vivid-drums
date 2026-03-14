@@ -10,7 +10,7 @@
   "connections": [
     { "from": "clock1/beat_phase", "to": "env1/phase" },
     { "from": "env1/value",        "to": "shape1/radius" },
-    { "from": "clock1/beat_phase", "to": "drum1/phase" },
+    { "from": "clock1/beat_phase", "to": "drum1/trigger" },
     { "from": "drum1/output",      "to": "out1/input" },
     { "from": "shape1/texture",    "to": "vout/input" }
   ]

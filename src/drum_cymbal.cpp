@@ -36,6 +36,7 @@ struct DrumCymbal : vivid::AudioOperatorBase {
     drum::SVF           hp_filter_;
     double              ring_phases_[kNumOsc] = {};
     double              lfo_phase_ = 0.0;
+    float               prev_trigger_ = 0.0f;
 
     DrumCymbal() {
         vivid::semantic_tag(decay, "time_seconds");
@@ -57,6 +58,7 @@ struct DrumCymbal : vivid::AudioOperatorBase {
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
+        out.push_back({"trigger", VIVID_PORT_FLOAT, VIVID_PORT_INPUT, VIVID_PORT_TRANSPORT_SCALAR, 0, nullptr, 0, 0.0f, nullptr, "trigger"});
         out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
         out.push_back(VIVID_CUSTOM_REF_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
     }
@@ -75,6 +77,18 @@ struct DrumCymbal : vivid::AudioOperatorBase {
 
         float cutoff = 3000.0f + tn * 9000.0f;
 
+        // Check for float trigger
+        bool float_triggered = false;
+        float float_vel_scale = 1.0f;
+        if (ctx->input_float_values) {
+            float trig = ctx->input_float_values[0];
+            if (trig > 0.5f && prev_trigger_ <= 0.5f) {
+                float_triggered = true;
+                float_vel_scale = trig;
+            }
+            prev_trigger_ = trig;
+        }
+
         // Check for MIDI trigger
         bool midi_triggered = false;
         float midi_vel_scale = 1.0f;
@@ -91,8 +105,11 @@ struct DrumCymbal : vivid::AudioOperatorBase {
             }
         }
 
+        bool triggered = midi_triggered || float_triggered;
+        float vel_scale = midi_triggered ? midi_vel_scale : float_vel_scale;
+
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && midi_triggered;
+            bool trig = (i == 0) && triggered;
             if (trig) {
                 env_.trigger();
                 for (int r = 0; r < kNumOsc; r++) ring_phases_[r] = 0.0;
@@ -124,7 +141,7 @@ struct DrumCymbal : vivid::AudioOperatorBase {
                 if (lfo_phase_ >= 1.0) lfo_phase_ -= 1.0;
             }
 
-            out[i] = filtered * env * lfo_mod * vol * (midi_triggered ? midi_vel_scale : 1.0f);
+            out[i] = filtered * env * lfo_mod * vol * vel_scale;
 
             env_.advance(inv_sr);
         }

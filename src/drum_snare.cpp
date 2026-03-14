@@ -30,6 +30,7 @@ struct DrumSnare : vivid::AudioOperatorBase {
     drum::WhiteNoise    noise_;
     drum::SVF           noise_filter_;
     double              osc_phase_ = 0.0;
+    float               prev_trigger_ = 0.0f;
 
     DrumSnare() {
         vivid::semantic_tag(pitch, "frequency_hz");
@@ -61,6 +62,7 @@ struct DrumSnare : vivid::AudioOperatorBase {
     }
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
+        out.push_back({"trigger", VIVID_PORT_FLOAT, VIVID_PORT_INPUT, VIVID_PORT_TRANSPORT_SCALAR, 0, nullptr, 0, 0.0f, nullptr, "trigger"});
         out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
         out.push_back(VIVID_CUSTOM_REF_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
     }
@@ -81,6 +83,18 @@ struct DrumSnare : vivid::AudioOperatorBase {
 
         float cutoff = 2000.0f + snap * 4000.0f;
 
+        // Check for float gate trigger (rising edge)
+        bool float_triggered = false;
+        float float_vel_scale = 1.0f;
+        if (ctx->input_float_values) {
+            float trig = ctx->input_float_values[0];
+            if (trig > 0.5f && prev_trigger_ <= 0.5f) {
+                float_triggered = true;
+                float_vel_scale = trig;
+            }
+            prev_trigger_ = trig;
+        }
+
         // Check for MIDI trigger
         bool midi_triggered = false;
         float midi_vel_scale = 1.0f;
@@ -97,8 +111,11 @@ struct DrumSnare : vivid::AudioOperatorBase {
             }
         }
 
+        bool triggered = midi_triggered || float_triggered;
+        float vel_scale = midi_triggered ? midi_vel_scale : float_vel_scale;
+
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && midi_triggered;
+            bool trig = (i == 0) && triggered;
             if (trig) {
                 tone_env_.trigger();
                 noise_env_.trigger();
@@ -120,7 +137,7 @@ struct DrumSnare : vivid::AudioOperatorBase {
             float sample = static_cast<float>(body) * t_env * t_level
                          + filt_noise * n_env * n_level;
 
-            out[i] = sample * vol * (midi_triggered ? midi_vel_scale : 1.0f);
+            out[i] = sample * vol * vel_scale;
 
             osc_phase_ += p * inv_sr;
             if (osc_phase_ >= 1.0) osc_phase_ -= 1.0;
