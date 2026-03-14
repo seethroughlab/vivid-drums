@@ -65,7 +65,7 @@ struct DrumTom : vivid::AudioOperatorBase {
 
     void collect_ports(std::vector<VividPortDescriptor>& out) override {
         out.push_back({"output", VIVID_PORT_AUDIO, VIVID_PORT_OUTPUT});
-        out.push_back(VIVID_HANDLE_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
+        out.push_back(VIVID_CUSTOM_REF_PORT("midi_in", VIVID_PORT_INPUT, VividMidiBuffer));
     }
 
     void process_audio(const VividAudioContext* ctx) override {
@@ -89,8 +89,8 @@ struct DrumTom : vivid::AudioOperatorBase {
         // Check for MIDI trigger
         bool midi_triggered = false;
         float midi_vel_scale = 1.0f;
-        if (ctx->input_handles && ctx->input_handle_count > 0 && ctx->input_handles[0]) {
-            auto* midi = static_cast<const VividMidiBuffer*>(ctx->input_handles[0]);
+        if (ctx->custom_inputs && ctx->custom_input_count > 0 && ctx->custom_inputs[0]) {
+            auto* midi = static_cast<const VividMidiBuffer*>(ctx->custom_inputs[0]);
             uint8_t target_note = static_cast<uint8_t>(note.int_value());
             for (uint32_t m = 0; m < midi->count; ++m) {
                 const auto& msg = midi->messages[m];
