@@ -15,7 +15,6 @@ struct DrumHiHat : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumHiHat";
     static constexpr bool kTimeDependent = true;
 
-    vivid::Param<float> phase  {"phase",   0.0f,  0.0f, 1.0f};
     vivid::Param<float> decay  {"decay",   0.08f, 0.01f, 2.0f};
     vivid::Param<float> tone   {"tone",    0.5f,  0.0f, 1.0f};
     vivid::Param<float> ring   {"ring",    0.5f,  0.0f, 1.0f};
@@ -31,12 +30,8 @@ struct DrumHiHat : vivid::AudioOperatorBase {
     drum::WhiteNoise    noise_;
     drum::SVF           hp_filter_;
     double              ring_phases_[6] = {};
-    float               prev_phase_ = 0.0f;
 
     DrumHiHat() {
-        vivid::semantic_tag(phase, "phase_01");
-        vivid::semantic_shape(phase, "scalar");
-
         vivid::semantic_tag(decay, "time_seconds");
         vivid::semantic_shape(decay, "scalar");
         vivid::semantic_unit(decay, "s");
@@ -50,7 +45,6 @@ struct DrumHiHat : vivid::AudioOperatorBase {
     }
 
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
-        out.push_back(&phase);
         out.push_back(&decay);
         out.push_back(&tone);
         out.push_back(&ring);
@@ -76,7 +70,6 @@ struct DrumHiHat : vivid::AudioOperatorBase {
         float p_mult   = pitch.value;
         float atk      = attack.value;
         float vol      = volume.value;
-        float cur_phase = phase.value;
 
         float cutoff = 4000.0f + tn * 8000.0f;
 
@@ -97,7 +90,7 @@ struct DrumHiHat : vivid::AudioOperatorBase {
         }
 
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            bool trig = (i == 0) && midi_triggered;
             if (trig) {
                 env_.trigger();
                 for (int r = 0; r < 6; r++) ring_phases_[r] = 0.0;
@@ -128,7 +121,6 @@ struct DrumHiHat : vivid::AudioOperatorBase {
             env_.advance(inv_sr);
         }
 
-        prev_phase_ = cur_phase;
     }
 };
 

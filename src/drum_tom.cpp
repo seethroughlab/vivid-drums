@@ -15,7 +15,6 @@ struct DrumTom : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumTom";
     static constexpr bool kTimeDependent = true;
 
-    vivid::Param<float> phase     {"phase",     0.0f,   0.0f,   1.0f};
     vivid::Param<float> pitch     {"pitch",   120.0f,  40.0f, 400.0f};
     vivid::Param<float> bend      {"bend",      0.3f,   0.0f,   1.0f};
     vivid::Param<float> bend_time {"bend_time", 0.08f,  0.01f,  0.3f};
@@ -29,12 +28,8 @@ struct DrumTom : vivid::AudioOperatorBase {
     drum::DecayEnvelope bend_env_;
     drum::SVF           body_filter_;
     double              osc_phase_ = 0.0;
-    float               prev_phase_ = 0.0f;
 
     DrumTom() {
-        vivid::semantic_tag(phase, "phase_01");
-        vivid::semantic_shape(phase, "scalar");
-
         vivid::semantic_tag(pitch, "frequency_hz");
         vivid::semantic_shape(pitch, "scalar");
         vivid::semantic_unit(pitch, "Hz");
@@ -52,7 +47,6 @@ struct DrumTom : vivid::AudioOperatorBase {
     }
 
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
-        out.push_back(&phase);
         out.push_back(&pitch);
         out.push_back(&bend);
         out.push_back(&bend_time);
@@ -80,7 +74,6 @@ struct DrumTom : vivid::AudioOperatorBase {
         float tn       = tone.value;
         float dec      = decay.value;
         float vol      = volume.value;
-        float cur_phase = phase.value;
 
         // Body filter: bandpass centered on pitch, amount controlled by tone
         float filter_cutoff = p_base * (1.0f + tn * 2.0f);
@@ -103,7 +96,7 @@ struct DrumTom : vivid::AudioOperatorBase {
         }
 
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            bool trig = (i == 0) && midi_triggered;
             if (trig) {
                 amp_env_.trigger();
                 bend_env_.trigger();
@@ -134,7 +127,6 @@ struct DrumTom : vivid::AudioOperatorBase {
             bend_env_.advance(inv_sr);
         }
 
-        prev_phase_ = cur_phase;
     }
 };
 

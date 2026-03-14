@@ -16,7 +16,6 @@ struct DrumCymbal : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumCymbal";
     static constexpr bool kTimeDependent = true;
 
-    vivid::Param<float> phase   {"phase",   0.0f,  0.0f,  1.0f};
     vivid::Param<float> decay   {"decay",   3.0f,  0.5f, 10.0f};
     vivid::Param<float> tone    {"tone",    0.5f,  0.0f,  1.0f};
     vivid::Param<float> pitch   {"pitch",   1.0f,  0.5f,  2.0f};
@@ -37,12 +36,8 @@ struct DrumCymbal : vivid::AudioOperatorBase {
     drum::SVF           hp_filter_;
     double              ring_phases_[kNumOsc] = {};
     double              lfo_phase_ = 0.0;
-    float               prev_phase_ = 0.0f;
 
     DrumCymbal() {
-        vivid::semantic_tag(phase, "phase_01");
-        vivid::semantic_shape(phase, "scalar");
-
         vivid::semantic_tag(decay, "time_seconds");
         vivid::semantic_shape(decay, "scalar");
         vivid::semantic_unit(decay, "s");
@@ -52,7 +47,6 @@ struct DrumCymbal : vivid::AudioOperatorBase {
     }
 
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
-        out.push_back(&phase);
         out.push_back(&decay);
         out.push_back(&tone);
         out.push_back(&pitch);
@@ -78,7 +72,6 @@ struct DrumCymbal : vivid::AudioOperatorBase {
         float shm      = shimmer.value;
         float szl      = sizzle.value;
         float vol      = volume.value;
-        float cur_phase = phase.value;
 
         float cutoff = 3000.0f + tn * 9000.0f;
 
@@ -99,7 +92,7 @@ struct DrumCymbal : vivid::AudioOperatorBase {
         }
 
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            bool trig = (i == 0) && midi_triggered;
             if (trig) {
                 env_.trigger();
                 for (int r = 0; r < kNumOsc; r++) ring_phases_[r] = 0.0;
@@ -136,7 +129,6 @@ struct DrumCymbal : vivid::AudioOperatorBase {
             env_.advance(inv_sr);
         }
 
-        prev_phase_ = cur_phase;
     }
 };
 

@@ -15,7 +15,6 @@ struct DrumClap : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumClap";
     static constexpr bool kTimeDependent = true;
 
-    vivid::Param<float> phase        {"phase",        0.0f,    0.0f,    1.0f};
     vivid::Param<float> decay        {"decay",        0.2f,    0.05f,   1.0f};
     vivid::Param<float> tone         {"tone",         0.5f,    0.0f,    1.0f};
     vivid::Param<float> sloppy       {"sloppy",       0.3f,    0.0f,    1.0f};
@@ -33,16 +32,12 @@ struct DrumClap : vivid::AudioOperatorBase {
     drum::WhiteNoise    noise_;
     drum::SVF           filter_l_;
     drum::SVF           filter_r_;
-    float               prev_phase_ = 0.0f;
 
     // Per-trigger randomized burst timing offsets and pan positions
     double burst_offsets_[kNumBursts] = {};
     float  burst_pan_[kNumBursts]     = {};  // -1 to 1
 
     DrumClap() {
-        vivid::semantic_tag(phase, "phase_01");
-        vivid::semantic_shape(phase, "scalar");
-
         vivid::semantic_tag(decay, "time_seconds");
         vivid::semantic_shape(decay, "scalar");
         vivid::semantic_unit(decay, "s");
@@ -56,7 +51,6 @@ struct DrumClap : vivid::AudioOperatorBase {
     }
 
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
-        out.push_back(&phase);
         out.push_back(&decay);
         out.push_back(&tone);
         out.push_back(&sloppy);
@@ -97,7 +91,6 @@ struct DrumClap : vivid::AudioOperatorBase {
         float width     = stereo_width.value;
         float center    = tune.value;
         float vol       = volume.value;
-        float cur_phase = phase.value;
 
         float cutoff = center + tn * 2000.0f;
 
@@ -118,7 +111,7 @@ struct DrumClap : vivid::AudioOperatorBase {
         }
 
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            bool trig = (i == 0) && midi_triggered;
             if (trig) {
                 env_.trigger();
                 randomize_bursts(slop, width);
@@ -168,7 +161,6 @@ struct DrumClap : vivid::AudioOperatorBase {
             env_.advance(inv_sr);
         }
 
-        prev_phase_ = cur_phase;
     }
 };
 

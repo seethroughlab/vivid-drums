@@ -15,7 +15,6 @@ struct DrumSnare : vivid::AudioOperatorBase {
     static constexpr const char* kName   = "DrumSnare";
     static constexpr bool kTimeDependent = true;
 
-    vivid::Param<float> phase      {"phase",       0.0f,   0.0f,  1.0f};
     vivid::Param<float> tone_level {"tone",        0.5f,   0.0f,  1.0f};
     vivid::Param<float> noise_level{"noise",       0.5f,   0.0f,  1.0f};
     vivid::Param<float> pitch      {"pitch",     200.0f, 100.0f, 400.0f};
@@ -31,12 +30,8 @@ struct DrumSnare : vivid::AudioOperatorBase {
     drum::WhiteNoise    noise_;
     drum::SVF           noise_filter_;
     double              osc_phase_ = 0.0;
-    float               prev_phase_ = 0.0f;
 
     DrumSnare() {
-        vivid::semantic_tag(phase, "phase_01");
-        vivid::semantic_shape(phase, "scalar");
-
         vivid::semantic_tag(pitch, "frequency_hz");
         vivid::semantic_shape(pitch, "scalar");
         vivid::semantic_unit(pitch, "Hz");
@@ -54,7 +49,6 @@ struct DrumSnare : vivid::AudioOperatorBase {
     }
 
     void collect_params(std::vector<vivid::ParamBase*>& out) override {
-        out.push_back(&phase);
         out.push_back(&tone_level);
         out.push_back(&noise_level);
         out.push_back(&pitch);
@@ -84,7 +78,6 @@ struct DrumSnare : vivid::AudioOperatorBase {
         float snap    = snappy.value;
         float col     = color.value;
         float vol     = volume.value;
-        float cur_phase = phase.value;
 
         float cutoff = 2000.0f + snap * 4000.0f;
 
@@ -105,7 +98,7 @@ struct DrumSnare : vivid::AudioOperatorBase {
         }
 
         for (uint32_t i = 0; i < ctx->buffer_size; i++) {
-            bool trig = (i == 0) && (midi_triggered || drum::detect_trigger(cur_phase, prev_phase_));
+            bool trig = (i == 0) && midi_triggered;
             if (trig) {
                 tone_env_.trigger();
                 noise_env_.trigger();
@@ -135,7 +128,6 @@ struct DrumSnare : vivid::AudioOperatorBase {
             noise_env_.advance(inv_sr);
         }
 
-        prev_phase_ = cur_phase;
     }
 };
 
