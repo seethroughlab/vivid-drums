@@ -7,5 +7,15 @@
   "category": "audio",
   "tags": ["audio", "drums", "synthesis"],
   "build": "cmake",
-  "operators": ["drum_kick", "drum_snare", "drum_hihat", "drum_clap", "drum_cymbal", "drum_tom"]
+  "operators": ["drum_kick", "drum_snare", "drum_hihat", "drum_clap", "drum_cymbal", "drum_tom"],
+  "tests": {
+    "graphs": [
+      "graphs/av_sync_demo.json",
+      "graphs/four_on_the_floor.json"
+    ],
+    "cpp": [
+      "tests/test_package_manifest.cpp",
+      "tests/test_drum_stack_assets.cpp"
+    ]
+  }
 }

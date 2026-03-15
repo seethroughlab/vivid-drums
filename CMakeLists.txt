@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(vivid_drums)
 
+if(NOT DEFINED VIVID_PLUGIN_SUFFIX)
+  set(VIVID_PLUGIN_SUFFIX .dylib)
+endif()
+
 option(VIVID_PACKAGE_BUILD_TESTS "Build vivid-drums package tests" OFF)
 
 set(VIVID_DRUM_OPS

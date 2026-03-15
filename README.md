@@ -26,3 +26,14 @@ It now also ships drum-stack macro examples/presets for fast layered kit startin
 - `graphs/drum_stack_percussion_wash.json`
 - `factory_presets/*.json` (includes `Stack Foundation ...` macro presets)
 - `vivid-package.json`
+
+
+## Validation
+
+Before pushing changes:
+
+1. Configure + build package operators.
+2. Run package tests.
+3. Run `vivid` link/rebuild/uninstall cycle against this package.
+4. Run `test_demo_graphs` against this package's `graphs/` directory.
+5. Keep the drum-stack asset regression test green alongside graph smoke.
