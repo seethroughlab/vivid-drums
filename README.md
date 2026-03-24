@@ -1,7 +1,9 @@
-# vivid-drums
+# vivid-drums (Archived)
 
-`vivid-drums` is a Vivid package library that provides drum synthesis operators.
-It now also ships drum-stack macro examples/presets for fast layered kit starting points.
+> **These operators are now part of [Vivid core](https://github.com/seethroughlab/vivid).** This repository is archived and no longer maintained.
+
+`vivid-drums` was a Vivid package library that provided drum synthesis operators.
+It now also shipped drum-stack macro examples/presets for fast layered kit starting points.
 
 ## Preview
 
